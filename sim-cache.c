@@ -95,6 +95,9 @@ static struct cache_t *cache_il2 = NULL;
 /* level 1 data cache, entry level data cache */
 static struct cache_t *cache_dl1 = NULL;
 
+/* TLS - level 1 data victim cache */
+static struct cache_t *cache_dl1_vict = NULL;
+
 /* level 2 data cache */
 static struct cache_t *cache_dl2 = NULL;
 
@@ -228,6 +231,7 @@ dtlb_access_fn(enum mem_cmd cmd,	/* access cmd, Read or Write */
 
 /* cache/TLB options */
 static char *cache_dl1_opt /* = "none" */;
+static char *cache_dli_vict_opt /* = "none" */; // TLS
 static char *cache_dl2_opt /* = "none" */;
 static char *cache_il1_opt /* = "none" */;
 static char *cache_il2_opt /* = "none" */;
@@ -285,6 +289,9 @@ sim_reg_options(struct opt_odb_t *odb)	/* options database */
 "    Examples:   -cache:dl1 dl1:4096:32:1:l\n"
 "                -dtlb dtlb:128:4096:32:r\n"
 	       );
+  opt_reg_string(odb, "-cache:dl1_vict",
+		 "l1 data victim cache config, i.e., {<numEntries>|none}",
+		 &cache_dl1_vict_opt, "2", /* print */TRUE, NULL); // TLS
   opt_reg_string(odb, "-cache:dl2",
 		 "l2 data cache config, i.e., {<config>|none}",
 		 &cache_dl2_opt, "ul2:1024:64:4:l", /* print */TRUE, NULL);
@@ -334,6 +341,7 @@ sim_check_options(struct opt_odb_t *odb,	/* options database */
 {
   char name[128], c;
   int nsets, bsize, assoc;
+  int numEntries; //TLS - number of entries for victim cache
 
   /* use a level 1 D-cache? */
   if (!mystricmp(cache_dl1_opt, "none"))
@@ -353,6 +361,18 @@ sim_check_options(struct opt_odb_t *odb,	/* options database */
       cache_dl1 = cache_create(name, nsets, bsize, /* balloc */FALSE,
 			       /* usize */0, assoc, cache_char2policy(c),
 			       dl1_access_fn, /* hit latency */1);
+      /* is the level 1 D-cache victim defined? (want to use victim cache?) */
+      if (!mystricmp(cache_dl1_vict_opt, "none"))
+      	cache_dl1_vict = NULL;
+      else
+	{
+	  if (sscanf(cache_dl1_vict_opt, "%[^:]:%d", name, &numEntries) != 1)
+	    fatal("bad l1 D-cache victim parms: "
+		  "<name>:<numEntries>");
+	  cache_dl1_vict = create_cache(name, numEntries, bsize, /* balloc */FALSE,
+			       /* usize */0, numEntries, cache_char2policy(c),
+			       dl1_vict_access_fn, /* hit latency */1);
+	}
 
       /* is the level 2 D-cache defined? */
       if (!mystricmp(cache_dl2_opt, "none"))
