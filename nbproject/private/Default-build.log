@@ -1,0 +1,119 @@
+gcc -DDEBUG -o sysprobe sysprobe.c
+sysprobe.c: In function ‘main’:
+sysprobe.c:263:39: warning: format ‘%d’ expects argument of type ‘int’, but argument 3 has type ‘long unsigned int’ [-Wformat=]
+       fprintf(stdout, "sizeof(int) = %d\n", sizeof(int));
+                                      ~^
+                                      %ld
+sysprobe.c:264:40: warning: format ‘%d’ expects argument of type ‘int’, but argument 3 has type ‘long unsigned int’ [-Wformat=]
+       fprintf(stdout, "sizeof(long) = %d\n", sizeof(long));
+                                       ~^
+                                       %ld
+endian probe results: little
+probe flags: -DBYTES_LITTLE_ENDIAN -DWORDS_LITTLE_ENDIAN -DFAST_SRL -DFAST_SRA -DGZIP_PATH="/bin/gzip"
+probe libs: -lm
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c sim-fast.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c main.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c syscall.c
+syscall.c: In function ‘sys_syscall’:
+syscall.c:1205:44: warning: pointer targets in passing argument 6 of ‘recvfrom’ differ in signedness [-Wpointer-sign]
+      (int) regs->regs_R[MD_REG_A3], a_sock,&addr_len);
+                                            ^
+In file included from /usr/include/netinet/tcp.h:77:0,
+                 from syscall.c:121:
+/usr/include/x86_64-linux-gnu/sys/socket.h:163:16: note: expected ‘socklen_t * restrict {aka unsigned int * restrict}’ but argument is of type ‘int *’
+ extern ssize_t recvfrom (int __fd, void *__restrict __buf, size_t __n,
+                ^~~~~~~~
+syscall.c:1967:53: warning: variable ‘size_elem’ set but not used [-Wunused-but-set-variable]
+  qword_t table_id, table_index, buf_addr, num_elem, size_elem;
+                                                     ^~~~~~~~~
+syscall.c:3122:22: warning: pointer targets in passing argument 3 of ‘getsockname’ differ in signedness [-Wpointer-sign]
+         /* namelen */&addrlen);
+                      ^
+In file included from /usr/include/netinet/tcp.h:77:0,
+                 from syscall.c:121:
+/usr/include/x86_64-linux-gnu/sys/socket.h:116:12: note: expected ‘socklen_t * restrict {aka unsigned int * restrict}’ but argument is of type ‘int *’
+ extern int getsockname (int __fd, __SOCKADDR_ARG __addr,
+            ^~~~~~~~~~~
+syscall.c:3174:22: warning: pointer targets in passing argument 3 of ‘getpeername’ differ in signedness [-Wpointer-sign]
+         /* namelen */&addrlen);
+                      ^
+In file included from /usr/include/netinet/tcp.h:77:0,
+                 from syscall.c:121:
+/usr/include/x86_64-linux-gnu/sys/socket.h:130:12: note: expected ‘socklen_t * restrict {aka unsigned int * restrict}’ but argument is of type ‘int *’
+ extern int getpeername (int __fd, __SOCKADDR_ARG __addr,
+            ^~~~~~~~~~~
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c memory.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c regs.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c loader.c
+loader.c: In function ‘ld_load_prog’:
+loader.c:161:17: warning: variable ‘data_break’ set but not used [-Wunused-but-set-variable]
+   md_addr_t sp, data_break = 0, null_ptr = 0, argv_addr, envp_addr;
+                 ^~~~~~~~~~
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c endian.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c dlite.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c symbol.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c eval.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c options.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c stats.c
+stats.c: In function ‘print_dist’:
+stats.c:651:33: warning: variable ‘imin’ set but not used [-Wunused-but-set-variable]
+   unsigned int i, bcount, imax, imin;
+                                 ^~~~
+stats.c:651:27: warning: variable ‘imax’ set but not used [-Wunused-but-set-variable]
+   unsigned int i, bcount, imax, imin;
+                           ^~~~
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c eio.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c range.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c misc.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c machine.c
+cd libexo ; \
+make "MAKE=make" "CC=gcc" "AR=ar qcv" "AROPT=" "RANLIB=ranlib" "CFLAGS=`./sysprobe -flags` -DDEBUG -O0 -g -Wall" "OEXT=o" "LEXT=a" "EEXT=" "X=/" "RM=rm -f" libexo.a
+make[1]: Entering directory '/home/thomas/NetBeansProjects/simplescalarproject/libexo'
+gcc -DBYTES_LITTLE_ENDIAN -DWORDS_LITTLE_ENDIAN -DFAST_SRL -DFAST_SRA -DGZIP_PATH="/bin/gzip"  -DDEBUG -O0 -g -Wall -c libexo.c
+gcc -DBYTES_LITTLE_ENDIAN -DWORDS_LITTLE_ENDIAN -DFAST_SRL -DFAST_SRA -DGZIP_PATH="/bin/gzip"  -DDEBUG -O0 -g -Wall -c exolex.c
+rm -f libexo.a
+ar qcv libexo.a libexo.o exolex.o
+a - libexo.o
+a - exolex.o
+ranlib libexo.a
+make[1]: Leaving directory '/home/thomas/NetBeansProjects/simplescalarproject/libexo'
+gcc -o sim-fast `./sysprobe -flags` -DDEBUG -O0 -g -Wall   sim-fast.o main.o syscall.o memory.o regs.o loader.o endian.o dlite.o symbol.o eval.o options.o stats.o eio.o range.o misc.o machine.o libexo/libexo.a `./sysprobe -libs` -lm
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c sim-safe.c
+gcc -o sim-safe `./sysprobe -flags` -DDEBUG -O0 -g -Wall   sim-safe.o main.o syscall.o memory.o regs.o loader.o endian.o dlite.o symbol.o eval.o options.o stats.o eio.o range.o misc.o machine.o libexo/libexo.a `./sysprobe -libs` -lm
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c sim-eio.c
+gcc -o sim-eio `./sysprobe -flags` -DDEBUG -O0 -g -Wall   sim-eio.o main.o syscall.o memory.o regs.o loader.o endian.o dlite.o symbol.o eval.o options.o stats.o eio.o range.o misc.o machine.o libexo/libexo.a `./sysprobe -libs` -lm
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c sim-bpred.c
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c bpred.c
+gcc -o sim-bpred `./sysprobe -flags` -DDEBUG -O0 -g -Wall   sim-bpred.o bpred.o main.o syscall.o memory.o regs.o loader.o endian.o dlite.o symbol.o eval.o options.o stats.o eio.o range.o misc.o machine.o libexo/libexo.a `./sysprobe -libs` -lm
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c sim-profile.c
+sim-profile.c: In function ‘sim_main’:
+sim-profile.c:649:22: warning: variable ‘fault’ set but not used [-Wunused-but-set-variable]
+   enum md_fault_type fault;
+                      ^~~~~
+gcc -o sim-profile `./sysprobe -flags` -DDEBUG -O0 -g -Wall   sim-profile.o main.o syscall.o memory.o regs.o loader.o endian.o dlite.o symbol.o eval.o options.o stats.o eio.o range.o misc.o machine.o libexo/libexo.a `./sysprobe -libs` -lm
+gcc `./sysprobe -flags` -DDEBUG -O0 -g -Wall   -c sim-cache.c
+sim-cache.c: In function ‘sim_reg_options’:
+sim-cache.c:294:5: error: ‘cache_dl1_vict_opt’ undeclared (first use in this function); did you mean ‘cache_dli_vict_opt’?
+    &cache_dl1_vict_opt, "2", /* print */TRUE, NULL); // TLS
+     ^~~~~~~~~~~~~~~~~~
+     cache_dli_vict_opt
+sim-cache.c:294:5: note: each undeclared identifier is reported only once for each function it appears in
+sim-cache.c: In function ‘sim_check_options’:
+sim-cache.c:365:22: error: ‘cache_dl1_vict_opt’ undeclared (first use in this function); did you mean ‘cache_dli_vict_opt’?
+       if (!mystricmp(cache_dl1_vict_opt, "none"))
+                      ^~~~~~~~~~~~~~~~~~
+                      cache_dli_vict_opt
+sim-cache.c:372:21: warning: implicit declaration of function ‘create_cache’; did you mean ‘__clear_cache’? [-Wimplicit-function-declaration]
+    cache_dl1_vict = create_cache(name, numEntries, bsize, /* balloc */FALSE,
+                     ^~~~~~~~~~~~
+                     __clear_cache
+sim-cache.c:374:11: error: ‘dl1_vict_access_fn’ undeclared (first use in this function); did you mean ‘dl1_access_fn’?
+           dl1_vict_access_fn, /* hit latency */1);
+           ^~~~~~~~~~~~~~~~~~
+           dl1_access_fn
+At top level:
+sim-cache.c:234:14: warning: ‘cache_dli_vict_opt’ defined but not used [-Wunused-variable]
+ static char *cache_dli_vict_opt /* = "none" */; // TLS
+              ^~~~~~~~~~~~~~~~~~
+Makefile:405: recipe for target 'sim-cache.o' failed
+make: *** [sim-cache.o] Error 1
