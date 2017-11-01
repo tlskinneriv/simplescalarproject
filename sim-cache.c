@@ -564,6 +564,8 @@ sim_reg_stats(struct stat_sdb_t *sdb) /* stats database */ {
     cache_reg_stats(cache_il2, sdb);
   if (cache_dl1)
     cache_reg_stats(cache_dl1, sdb);
+  if (cache_dl1_vict)
+    cache_reg_stats(cache_dl1_vict, sdb);
   if (cache_dl2)
     cache_reg_stats(cache_dl2, sdb);
   if (itlb)
