@@ -310,7 +310,7 @@ sim_reg_options(struct opt_odb_t *odb) /* options database */ {
           );
   opt_reg_string(odb, "-cache:dl1_vict",
           "l1 data victim cache config, i.e., {<config>|none}",
-          &cache_dl1_vict_opt, "dl1_vict:2:l", /* print */TRUE, NULL); // TLS
+          &cache_dl1_vict_opt, "none", /* print */TRUE, NULL); // TLS
   opt_reg_note(odb,
           "  The victim cache config parameter <config> has the following format:\n"
           "\n"
