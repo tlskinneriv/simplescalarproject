@@ -55,7 +55,8 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0" commonFlags="-g"/>
+        <element flagsID="0"
+                 commonFlags="-mtune=generic -march=x86-64 -g -fstack-protector-strong"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -65,11 +66,6 @@
           <buildCommand>${MAKE} -f Makefile</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
           <executablePath></executablePath>
-          <cTool>
-            <preprocessorList>
-              <Elem>DEBUG</Elem>
-            </preprocessorList>
-          </cTool>
         </makeTool>
         <preBuild>
           <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
@@ -77,312 +73,213 @@
           <preBuildFirst>true</preBuildFirst>
         </preBuild>
       </makefileType>
-      <item path="bpred.c" ex="false" tool="0" flavor2="2">
+      <item path="bpred.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="cache.c" ex="false" tool="0" flavor2="0">
+      <item path="cache.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="dlite.c" ex="false" tool="0" flavor2="2">
+      <item path="dlite.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="eio.c" ex="false" tool="0" flavor2="2">
+      <item path="eio.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>libexo</pElem>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="endian.c" ex="false" tool="0" flavor2="2">
+      <item path="endian.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="eval.c" ex="false" tool="0" flavor2="2">
+      <item path="eval.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
       <folder path="0/libexo">
         <cTool>
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH=/bin/gzip</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+            <pElem>libexo</pElem>
+          </incDir>
         </cTool>
       </folder>
-      <item path="libexo/exolex.c" ex="false" tool="0" flavor2="2">
+      <item path="libexo/exolex.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
         </cTool>
       </item>
-      <item path="libexo/libexo.c" ex="false" tool="0" flavor2="2">
+      <item path="libexo/libexo.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
         </cTool>
       </item>
-      <item path="loader.c" ex="false" tool="0" flavor2="2">
+      <item path="loader.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>target-alpha</pElem>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="machine.c" ex="false" tool="0" flavor2="2">
+      <item path="machine.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="main.c" ex="false" tool="0" flavor2="2">
+      <item path="main.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="memory.c" ex="false" tool="0" flavor2="2">
+      <item path="memory.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="misc.c" ex="false" tool="0" flavor2="2">
+      <item path="misc.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="options.c" ex="false" tool="0" flavor2="2">
+      <item path="options.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="ptrace.c" ex="false" tool="0" flavor2="0">
+      <item path="ptrace.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="range.c" ex="false" tool="0" flavor2="2">
+      <item path="range.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="regs.c" ex="false" tool="0" flavor2="2">
+      <item path="regs.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="resource.c" ex="false" tool="0" flavor2="0">
+      <item path="resource.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="sim-bpred.c" ex="false" tool="0" flavor2="2">
+      <item path="sim-bpred.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="sim-cache.c" ex="false" tool="0" flavor2="0">
+      <item path="sim-cache.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="sim-eio.c" ex="false" tool="0" flavor2="2">
+      <item path="sim-eio.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="sim-fast.c" ex="false" tool="0" flavor2="2">
+      <item path="sim-fast.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="sim-outorder.c" ex="false" tool="0" flavor2="0">
+      <item path="sim-outorder.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="sim-profile.c" ex="false" tool="0" flavor2="2">
+      <item path="sim-profile.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="sim-safe.c" ex="false" tool="0" flavor2="2">
+      <item path="sim-safe.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="stats.c" ex="false" tool="0" flavor2="2">
+      <item path="stats.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="symbol.c" ex="false" tool="0" flavor2="2">
+      <item path="symbol.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>target-alpha</pElem>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
-      <item path="syscall.c" ex="false" tool="0" flavor2="2">
+      <item path="syscall.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <preprocessorList>
-            <Elem>BYTES_LITTLE_ENDIAN</Elem>
-            <Elem>FAST_SRA</Elem>
-            <Elem>FAST_SRL</Elem>
-            <Elem>GZIP_PATH="/bin/gzip"</Elem>
-            <Elem>WORDS_LITTLE_ENDIAN</Elem>
-          </preprocessorList>
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </cTool>
       </item>
       <item path="sysprobe.c" ex="false" tool="0" flavor2="2">
+        <cTool>
+          <preprocessorList>
+            <Elem>DEBUG</Elem>
+          </preprocessorList>
+        </cTool>
       </item>
     </conf>
   </confs>

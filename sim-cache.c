@@ -130,19 +130,22 @@ dl1_access_fn(enum mem_cmd cmd, /* access cmd, Read or Write */
         int bsize, /* size of block to access */
         struct cache_blk_t *blk, /* ptr to block in upper level */
         tick_t now) /* time of access */ {
-  assert(cmd == Read);
   if (cache_dl1_vict) { // using a victim cache
     if (cache_probe(cache_dl1_vict, baddr)) {
       //if the victim would hit
       cache_dl1->misses--;
       cache_dl1->hits++;
-      return cache_access_dl1_vict(cache_dl1_vict, Read, baddr, NULL, bsize, now, NULL, NULL);
+      //swap blocks with victim
+      return cache_access_dl1_vict(cache_dl1_vict, cmd, baddr, NULL, bsize, 
+              now, NULL, NULL, blk, cache_dl1);
     }
     else {
-      
+      //swap data before continuing
+      cache_access_dl1_vict(cache_dl1_vict, cmd, baddr, NULL, bsize, 
+              now, NULL, NULL, blk, cache_dl1);
     }
   }
-  else if (cache_dl2) {
+  if (cache_dl2) {
     /* access next level of data cache hierarchy */
     return cache_access(cache_dl2, cmd, baddr, NULL, bsize,
             /* now */now, /* pudata */NULL, /* repl addr */NULL);
@@ -158,8 +161,15 @@ dl1_vict_access_fn(enum mem_cmd cmd, /* access cmd, Read or Write */
         int bsize, /* size of block to access */
         struct cache_blk_t *blk, /* ptr to block in upper level */
         tick_t now) /* time of access */ {
-  // this cache should never be accessed directly, but in case it is, return 0 as latency
-  return 0;
+  // this cache should never be accessed directly, but will be accessed for writeback
+  if (cache_dl2) {
+    /* access next level of data cache hierarchy */
+    return cache_access(cache_dl2, cmd, baddr, NULL, bsize,
+            /* now */now, /* pudata */NULL, /* repl addr */NULL);
+  } else {
+    /* access main memory, which is always done in the main simulator loop */
+    return /* access latency, ignored */1;
+  }
 }
 
 /* l2 data cache block miss handler function */
@@ -370,10 +380,10 @@ sim_check_options(struct opt_odb_t *odb, /* options database */
     if (!mystricmp(cache_dl1_vict_opt, "none"))
       cache_dl1_vict = NULL;
     else {
-      if (sscanf(cache_dl1_vict_opt, "%[^:]:%d", name, &numEntries) != 1)
+      if (sscanf(cache_dl1_vict_opt, "%[^:]:%d", name, &numEntries) != 2)
         fatal("bad l1 D-cache victim parms: "
               "<name>:<numEntries>");
-      cache_dl1_vict = cache_create(name, numEntries, bsize, /* balloc */FALSE,
+      cache_dl1_vict = cache_create(name, 1, bsize, /* balloc */FALSE,
               /* usize */0, numEntries, cache_char2policy(c),
               dl1_vict_access_fn, /* hit latency */1);
     }
@@ -656,8 +666,11 @@ sim_uninit(void) {
        sizeof(SRC_T), 0, NULL, NULL)   \
     : 0),        \
    (cache_dl1        \
-    ? cache_access_dl1(cache_dl1, Read, (addr), NULL,   \
+    ? (cache_dl1_vict  \
+      ? cache_access_dl1(cache_dl1, Read, (addr), NULL,   \
        sizeof(SRC_T), 0, NULL, NULL)   \
+      : cache_access(cache_dl1, Read, (addr), NULL,   \
+       sizeof(SRC_T), 0, NULL, NULL))   \
     : 0))
 
 #define READ_BYTE(SRC, FAULT)      \
@@ -681,8 +694,11 @@ sim_uninit(void) {
        sizeof(DST_T), 0, NULL, NULL)   \
     : 0),        \
    (cache_dl1        \
-    ? cache_access_dl1(cache_dl1, Write, (addr), NULL,   \
+    ? (cache_dl1_vict  \
+      ? cache_access_dl1(cache_dl1, Write, (addr), NULL,   \
        sizeof(DST_T), 0, NULL, NULL)   \
+      : cache_access(cache_dl1, Write, (addr), NULL,   \
+       sizeof(DST_T), 0, NULL, NULL))   \
     : 0))
 
 #define WRITE_BYTE(SRC, DST, FAULT)     \
@@ -709,8 +725,12 @@ dcache_access_fn(struct mem_t *mem, /* memory space to access */
         int nbytes) /* number of bytes to access */ {
   if (dtlb)
     cache_access(dtlb, cmd, addr, NULL, nbytes, 0, NULL, NULL);
-  if (cache_dl1)
-    cache_access_dl1(cache_dl1, cmd, addr, NULL, nbytes, 0, NULL, NULL);
+  if (cache_dl1) {
+    if (cache_dl1_vict)
+      cache_access_dl1(cache_dl1, cmd, addr, NULL, nbytes, 0, NULL, NULL);
+    else
+      cache_access(cache_dl1, cmd, addr, NULL, nbytes, 0, NULL, NULL);
+  }
   return mem_access(mem, cmd, addr, p, nbytes);
 }
 

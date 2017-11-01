@@ -279,7 +279,9 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
         int nbytes, /* number of bytes to access */
         tick_t now, /* time of access */
         byte_t **udata, /* for return of user data ptr */
-        md_addr_t *repl_addr); /* for address of replaced block */
+        md_addr_t *repl_addr, /* for address of replaced block */
+        struct cache_blk_t *blockReplace, /* block to replace */
+        struct cache_t *dl1_cache); /* pointer to cache that block to replace is in */
 
 /* cache access functions, these are safe, they check alignment and
    permissions */

@@ -775,38 +775,38 @@ cache_access_dl1(struct cache_t *cp, /* cache to access */
   cp->last_tagset = 0;
   cp->last_blk = NULL;
 
-  /* write back replaced block data */
-  if (repl->status & CACHE_BLK_VALID) {
-    cp->replacements++;
-
-    if (repl_addr)
-      *repl_addr = CACHE_MK_BADDR(cp, repl->tag, set);
-
-    /* don't replace the block until outstanding misses are satisfied */
-    lat += BOUND_POS(repl->ready - now);
-
-    /* stall until the bus to next level of memory is available */
-    lat += BOUND_POS(cp->bus_free - (now + lat));
-
-    /* track bus resource usage */
-    cp->bus_free = MAX(cp->bus_free, (now + lat)) + 1;
-
-    if (repl->status & CACHE_BLK_DIRTY) {
-      /* write back the cache block */
-      cp->writebacks++;
-      lat += cp->blk_access_fn(Write,
-              CACHE_MK_BADDR(cp, repl->tag, set),
-              cp->bsize, repl, now + lat);
-    }
-  }
-
-  /* update block tags */
-  repl->tag = tag;
-  repl->status = CACHE_BLK_VALID; /* dirty bit set on update */
+//  /* write back replaced block data */
+//  if (repl->status & CACHE_BLK_VALID) {
+//    cp->replacements++;
+//
+//    if (repl_addr)
+//      *repl_addr = CACHE_MK_BADDR(cp, repl->tag, set);
+//
+//    /* don't replace the block until outstanding misses are satisfied */
+//    lat += BOUND_POS(repl->ready - now);
+//
+//    /* stall until the bus to next level of memory is available */
+//    lat += BOUND_POS(cp->bus_free - (now + lat));
+//
+//    /* track bus resource usage */
+//    cp->bus_free = MAX(cp->bus_free, (now + lat)) + 1;
+//
+//    if (repl->status & CACHE_BLK_DIRTY) {
+//      /* write back the cache block */
+//      cp->writebacks++;
+//      lat += cp->blk_access_fn(Write,
+//              CACHE_MK_BADDR(cp, repl->tag, set),
+//              cp->bsize, repl, now + lat);
+//    }
+//  }
 
   /* read data block */
   lat += cp->blk_access_fn(Read, CACHE_BADDR(cp, addr), cp->bsize,
           repl, now + lat);
+  
+  /* update block tags */
+  repl->tag = tag;
+  repl->status = CACHE_BLK_VALID; /* dirty bit set on update */
 
   /* copy data out of cache block */
   if (cp->balloc) {
@@ -908,11 +908,20 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
         int nbytes, /* number of bytes to access */
         tick_t now, /* time of access */
         byte_t **udata, /* for return of user data ptr */
-        md_addr_t *repl_addr) /* for address of replaced block */ {
+        md_addr_t *repl_addr, /* for address of replaced block */ 
+        struct cache_blk_t *l1Block, /* block to replace */
+        struct cache_t *dl1_cache) /* pointer to cache that block to replace is in */ {
   byte_t *p = vp;
+  // info for block that would be here if it hit
   md_addr_t tag = CACHE_TAG(cp, addr);
   md_addr_t set = CACHE_SET(cp, addr);
   md_addr_t bofs = CACHE_BLK(cp, addr);
+  // info for block to swap in l1
+  md_addr_t l1Block_L1Set = CACHE_SET(dl1_cache, addr); //set that the l1 block is in
+  md_addr_t l1Block_Bofs = CACHE_BLK(dl1_cache, addr); //offset of block in l1
+  md_addr_t l1Block_Addr = CACHE_MK_BADDR(dl1_cache, l1Block->tag, l1Block_L1Set); // l1 block address
+  md_addr_t l1Block_VictTag = CACHE_TAG(cp, l1Block_Addr); //l1 block tag in victim cache
+  
   struct cache_blk_t *blk, *repl;
   int lat = 0;
 
@@ -931,13 +940,6 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
     fatal("cache: access error: access spans block, addr 0x%08x", addr);
 
   /* permissions are checked on cache misses */
-
-  /* check for a fast hit: access to same block */
-  if (CACHE_TAGSET(cp, addr) == cp->last_tagset) {
-    /* hit in the same block */
-    blk = cp->last_blk;
-    goto cache_fast_hit;
-  }
 
   if (cp->hsize) {
     /* higly-associativity cache, access through the per-set hash tables */
@@ -962,6 +964,8 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
   /* cache block not found */
 
   /* **MISS** */
+  /* writeback block to replace in victim, copy dl1 block to its place (block will be
+   * automatically replaced in dl1 by its blk_access_fn) */
   cp->misses++;
 
   /* select the appropriate block to replace, and re-link this entry to
@@ -971,7 +975,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
     case FIFO:
       repl = cp->sets[set].way_tail;
       update_way_list(&cp->sets[set], repl, Head);
-      break;
+     break;
     case Random:
     {
       int bindex = myrand() & (cp->assoc - 1);
@@ -981,15 +985,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
     default:
       panic("bogus replacement policy");
   }
-
-  /* remove this block from the hash bucket chain, if hash exists */
-  if (cp->hsize)
-    unlink_htab_ent(cp, &cp->sets[set], repl);
-
-  /* blow away the last block to hit */
-  cp->last_tagset = 0;
-  cp->last_blk = NULL;
-
+  
   /* write back replaced block data */
   if (repl->status & CACHE_BLK_VALID) {
     cp->replacements++;
@@ -1014,35 +1010,28 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
               cp->bsize, repl, now + lat);
     }
   }
-
-  /* update block tags */
-  repl->tag = tag;
-  repl->status = CACHE_BLK_VALID; /* dirty bit set on update */
-
-  /* read data block */
-  lat += cp->blk_access_fn(Read, CACHE_BADDR(cp, addr), cp->bsize,
-          repl, now + lat);
-
-  /* copy data out of cache block */
+  
+  /* copies the block that will be replaced in dl1 to the victim cache,
+   * overwriting the lru block which was just written back to the next level
+   * cache. */
+  
   if (cp->balloc) {
-    CACHE_BCOPY(cmd, repl, bofs, p, nbytes);
+    // copy data from l1 block to victim block
+    int blockOffset = 0;
+    int blockSize = dl1_cache->bsize;
+    byte_t *temp_data = (byte_t*) malloc(blockSize * sizeof (byte_t));
+    CACHE_BCOPY(Read, l1Block, blockOffset, temp_data, blockSize);
+    blockOffset = 0;
+    blockSize = dl1_cache->bsize;
+    CACHE_BCOPY(Write, repl, blockOffset, temp_data, blockSize);
+    free(temp_data);
   }
-
-  /* update dirty status */
-  if (cmd == Write)
-    repl->status |= CACHE_BLK_DIRTY;
-
-  /* get user block data, if requested and it exists */
-  if (udata)
-    *udata = repl->user_data;
-
-  /* update block status */
-  repl->ready = now + lat;
-
-  /* link this entry back into the hash table */
-  if (cp->hsize)
-    link_htab_ent(cp, &cp->sets[set], repl);
-
+  repl->ready = l1Block->ready;
+  repl->status = l1Block->status;
+  // tag relating to the victim cache for the block being replaced in dl1
+  repl->user_data = l1Block->user_data;
+  repl->tag = l1Block_VictTag;
+  
   /* return latency of the operation */
   return lat;
 
@@ -1050,64 +1039,50 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
 cache_hit: /* slow hit handler */
 
   /* **HIT** */
+  /* just swap*/
   cp->hits++;
 
-  /* copy data out of cache block, if block exists */
+  //swap user data between dl1 block and victim block
+  byte_t *user_dataTemp = blk->user_data;
+  blk->user_data = l1Block->user_data;
+  l1Block->user_data = user_dataTemp;
+  
+  //swap data between blocks
   if (cp->balloc) {
-    CACHE_BCOPY(cmd, blk, bofs, p, nbytes);
+    // copy data from l1 block to victim block
+    int blockOffset;
+    int blockSize = dl1_cache->bsize;
+    byte_t *temp_data1 = (byte_t*) malloc(blockSize * sizeof (byte_t));
+    byte_t *temp_data2 = (byte_t*) malloc(blockSize * sizeof (byte_t));
+    blockOffset = 0;
+    CACHE_BCOPY(Read, l1Block, blockOffset, temp_data1, blockSize);
+    blockOffset = 0;
+    CACHE_BCOPY(Read, blk, blockOffset, temp_data2, blockSize);
+    blockOffset = 0;
+    CACHE_BCOPY(Write, l1Block, blockOffset, temp_data2, blockSize);
+    blockOffset = 0;
+    CACHE_BCOPY(Write, blk, blockOffset, temp_data1, blockSize);
+    free(temp_data1);
+    free(temp_data2);
   }
-
-  /* update dirty status */
-  if (cmd == Write)
-    blk->status |= CACHE_BLK_DIRTY;
-
-  /* if LRU replacement and this is not the first element of list, reorder */
-  if (blk->way_prev && cp->policy == LRU) {
-    /* move this block to head of the way (MRU) list */
-    update_way_list(&cp->sets[set], blk, Head);
-  }
-
-  /* tag is unchanged, so hash links (if they exist) are still valid */
-
-  /* record the last block to hit */
-  cp->last_tagset = CACHE_TAGSET(cp, addr);
-  cp->last_blk = blk;
+  
+  //swap status
+  tick_t temp_ready = blk->ready;
+  unsigned int temp_status = blk->status;
+  blk->ready = l1Block->ready;
+  blk->status = l1Block->status;
+  l1Block->ready = temp_ready;
+  l1Block->status = temp_status;
+  
+  //tags stay the same on both sides, so no need to switch
 
   /* get user block data, if requested and it exists */
   if (udata)
     *udata = blk->user_data;
 
   /* return first cycle data is available to access */
-  return (int) MAX(cp->hit_latency, (blk->ready - now));
-
-cache_fast_hit: /* fast hit handler */
-
-  /* **FAST HIT** */
-  cp->hits++;
-
-  /* copy data out of cache block, if block exists */
-  if (cp->balloc) {
-    CACHE_BCOPY(cmd, blk, bofs, p, nbytes);
-  }
-
-  /* update dirty status */
-  if (cmd == Write)
-    blk->status |= CACHE_BLK_DIRTY;
-
-  /* this block hit last, no change in the way list */
-
-  /* tag is unchanged, so hash links (if they exist) are still valid */
-
-  /* get user block data, if requested and it exists */
-  if (udata)
-    *udata = blk->user_data;
-
-  /* record the last block to hit */
-  cp->last_tagset = CACHE_TAGSET(cp, addr);
-  cp->last_blk = blk;
-
-  /* return first cycle data is available to access */
-  return (int) MAX(cp->hit_latency, (blk->ready - now));
+//  return (int) MAX(cp->hit_latency, (blk->ready - now));
+  return (int) cp->hit_latency;
 }
 
 /* return non-zero if block containing address ADDR is contained in cache
