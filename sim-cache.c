@@ -309,8 +309,19 @@ sim_reg_options(struct opt_odb_t *odb) /* options database */ {
           "                -dtlb dtlb:128:4096:32:r\n"
           );
   opt_reg_string(odb, "-cache:dl1_vict",
-          "l1 data victim cache config, i.e., {<numEntries>|none}",
-          &cache_dl1_vict_opt, "2", /* print */TRUE, NULL); // TLS
+          "l1 data victim cache config, i.e., {<config>|none}",
+          &cache_dl1_vict_opt, "dl1_vict:2:l", /* print */TRUE, NULL); // TLS
+  opt_reg_note(odb,
+          "  The victim cache config parameter <config> has the following format:\n"
+          "\n"
+          "    <name>:<numLines>:<repl>\n"
+          "\n"
+          "    <name>     - name of the cache being defined\n"
+          "    <numLines> - number of lines in the cache\n"
+          "    <repl>     - block replacement strategy, 'l'-LRU, 'f'-FIFO, 'r'-random\n"
+          "\n"
+          "    Example:   -cache:dl1_vict dl1_vict:2:l\n"
+          );
   opt_reg_string(odb, "-cache:dl2",
           "l2 data cache config, i.e., {<config>|none}",
           &cache_dl2_opt, "ul2:1024:64:4:l", /* print */TRUE, NULL);
@@ -380,9 +391,9 @@ sim_check_options(struct opt_odb_t *odb, /* options database */
     if (!mystricmp(cache_dl1_vict_opt, "none"))
       cache_dl1_vict = NULL;
     else {
-      if (sscanf(cache_dl1_vict_opt, "%[^:]:%d", name, &numEntries) != 2)
+      if (sscanf(cache_dl1_vict_opt, "%[^:]:%d:%c", name, &numEntries, &c) != 3)
         fatal("bad l1 D-cache victim parms: "
-              "<name>:<numEntries>");
+              "<name>:<numEntries>:<repl>");
       cache_dl1_vict = cache_create(name, 1, bsize, /* balloc */FALSE,
               /* usize */0, numEntries, cache_char2policy(c),
               dl1_vict_access_fn, /* hit latency */1);
