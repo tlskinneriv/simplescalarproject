@@ -968,6 +968,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
   /* writeback block to replace in victim, copy dl1 block to its place (block will be
    * automatically replaced in dl1 by its blk_access_fn) */
   cp->misses++;
+  dl1_cache->replacements++; //increase replacements because the block copied out of l1 will be replaced
 
   /* select the appropriate block to replace, and re-link this entry to
      the appropriate place in the way list */
