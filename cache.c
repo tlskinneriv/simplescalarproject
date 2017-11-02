@@ -805,7 +805,7 @@ cache_access_dl1(struct cache_t *cp, /* cache to access */
           repl, now + lat);
   
   /* update block tags */
-  repl->tag = tag;
+  //repl->tag = tag; // tag set by vict cache
   repl->status = CACHE_BLK_VALID; /* dirty bit set on update */
 
   /* copy data out of cache block */
@@ -921,6 +921,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
   md_addr_t l1Block_Bofs = CACHE_BLK(dl1_cache, addr); //offset of block in l1
   md_addr_t l1Block_Addr = CACHE_MK_BADDR(dl1_cache, l1Block->tag, l1Block_L1Set); // l1 block address
   md_addr_t l1Block_VictTag = CACHE_TAG(cp, l1Block_Addr); //l1 block tag in victim cache
+  md_addr_t l1Block_L1NewTag = CACHE_TAG(dl1_cache, addr); //new tag for replacement after writeback
   
   struct cache_blk_t *blk, *repl;
   int lat = 0;
@@ -1031,6 +1032,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
   // tag relating to the victim cache for the block being replaced in dl1
   repl->user_data = l1Block->user_data;
   repl->tag = l1Block_VictTag;
+  l1Block->tag = l1Block_L1NewTag;
   
   /* return latency of the operation */
   return lat;

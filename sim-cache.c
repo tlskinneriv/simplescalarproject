@@ -162,14 +162,7 @@ dl1_vict_access_fn(enum mem_cmd cmd, /* access cmd, Read or Write */
         struct cache_blk_t *blk, /* ptr to block in upper level */
         tick_t now) /* time of access */ {
   // this cache should never be accessed directly, but will be accessed for writeback
-  if (cache_dl2) {
-    /* access next level of data cache hierarchy */
-    return cache_access(cache_dl2, cmd, baddr, NULL, bsize,
-            /* now */now, /* pudata */NULL, /* repl addr */NULL);
-  } else {
-    /* access main memory, which is always done in the main simulator loop */
-    return /* access latency, ignored */1;
-  }
+  return 0; // do nothing here
 }
 
 /* l2 data cache block miss handler function */
