@@ -441,6 +441,7 @@ dl1_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
 
   if (cache_dl1_vict) { // using a victim cache
     if (cache_probe(cache_dl1_vict, baddr) != 0) {
+      fprintf(stderr, "block addr to replace in dl1: %d", baddr);
       //if the victim would hit
       cache_dl1->misses--;
       cache_dl1->hits++;
