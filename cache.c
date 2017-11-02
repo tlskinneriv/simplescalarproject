@@ -696,8 +696,8 @@ cache_access_dl1(struct cache_t *cp, /* cache to access */
         md_addr_t *repl_addr) /* for address of replaced block */ {
   byte_t *p = vp;
   md_addr_t tag = CACHE_TAG(cp, addr); //tag of block where this addr should be
-  md_addr_t set = CACHE_SET(cp, addr);
-  md_addr_t bofs = CACHE_BLK(cp, addr);
+  md_addr_t set = CACHE_SET(cp, addr); // set where the block should be
+  md_addr_t bofs = CACHE_BLK(cp, addr); // offset where the addr is located in the block
   struct cache_blk_t *blk, *repl;
   int lat = 0;
 
@@ -806,7 +806,7 @@ cache_access_dl1(struct cache_t *cp, /* cache to access */
   
   /* update block tags */
   //repl->tag = tag; // tag set by vict cache
-  repl->status = CACHE_BLK_VALID; /* dirty bit set on update */
+//  repl->status = CACHE_BLK_VALID; /* dirty bit set on update */ //tag set by vict cache
 
   /* copy data out of cache block */
   if (cp->balloc) {
@@ -1034,6 +1034,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
   repl->user_data = l1Block->user_data;
   repl->tag = l1Block_VictTag;
   l1Block->tag = l1Block_L1NewTag;
+  l1Block->status = CACHE_BLK_VALID;
   
   /* return latency of the operation */
   return lat;
@@ -1077,7 +1078,9 @@ cache_hit: /* slow hit handler */
   l1Block->ready = temp_ready;
   l1Block->status = temp_status;
   
-  //tags stay the same on both sides, so no need to switch
+  //regenerate tags
+  l1Block->tag = l1Block_L1NewTag; // tag for blk hit in L1 cache
+  blk->tag = l1Block_VictTag; // tag for l1 block in vict cache
 
   /* get user block data, if requested and it exists */
   if (udata)
