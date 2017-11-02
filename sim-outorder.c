@@ -439,7 +439,7 @@ dl1_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
 {
   unsigned int lat;
 
-  if (cache_dl1_vict) { // using a victim cache
+  if (cache_dl1_vict && (blk->status & CACHE_BLK_VALID)) { // using a victim cache & replacing a valid block?
 //    fprintf(stderr, "block addr to replace in dl1: %d\n", baddr);
     if (cache_probe(cache_dl1_vict, baddr) != 0) {
       //if the victim would hit
