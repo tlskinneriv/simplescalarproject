@@ -806,7 +806,7 @@ cache_access_dl1(struct cache_t *cp, /* cache to access */
   
   /* update block tags */
   //repl->tag = tag; // tag set by vict cache
-//  repl->status = CACHE_BLK_VALID; /* dirty bit set on update */ //tag set by vict cache
+  repl->status |= CACHE_BLK_VALID; // sets valid but doesn't unset Dirty if it was already dirty
 
   /* copy data out of cache block */
   if (cp->balloc) {
