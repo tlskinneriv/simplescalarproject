@@ -480,6 +480,16 @@ dl1_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
     }
 }
 
+static unsigned int /* latency of block access */
+dl1_vict_access_fn(enum mem_cmd cmd, /* access cmd, Read or Write */
+        md_addr_t baddr, /* block address to access */
+        int bsize, /* size of block to access */
+        struct cache_blk_t *blk, /* ptr to block in upper level */
+        tick_t now) /* time of access */ {
+  // this cache should never be accessed directly, but will be accessed for writeback
+  return 0; // do nothing here
+}
+
 /* l2 data cache block miss handler function */
 static unsigned int			/* latency of block access */
 dl2_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
@@ -915,7 +925,7 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
 		  int argc, char **argv)        /* command line arguments */
 {
   char name[128], c;
-  int nsets, bsize, assoc;
+  int nsets, bsize, assoc, numEntries;
 
   if (fastfwd_count < 0 || fastfwd_count >= 2147483647)
     fatal("bad fast forward count: %d", fastfwd_count);
@@ -1046,6 +1056,23 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
     }
   else /* dl1 is defined */
     {
+      if (sscanf(cache_dl1_opt, "%[^:]:%d:%d:%d:%c",
+            name, &nsets, &bsize, &assoc, &c) != 5)
+      fatal("bad l1 D-cache parms: <name>:<nsets>:<bsize>:<assoc>:<repl>");
+    cache_dl1 = cache_create(name, nsets, bsize, /* balloc */FALSE,
+            /* usize */0, assoc, cache_char2policy(c),
+            dl1_access_fn, /* hit latency */1);
+    /* is the level 1 D-cache victim defined? (want to use victim cache?) */
+    if (!mystricmp(cache_dl1_vict_opt, "none"))
+      cache_dl1_vict = NULL;
+    else {
+      if (sscanf(cache_dl1_vict_opt, "%[^:]:%d:%c", name, &numEntries, &c) != 3)
+        fatal("bad l1 D-cache victim parms: "
+              "<name>:<numEntries>:<repl>");
+      cache_dl1_vict = cache_create(name, 1, bsize, /* balloc */FALSE,
+              /* usize */0, numEntries, cache_char2policy(c),
+              dl1_vict_access_fn, /* hit latency */1);
+    }
       if (sscanf(cache_dl1_opt, "%[^:]:%d:%d:%d:%c",
 		 name, &nsets, &bsize, &assoc, &c) != 5)
 	fatal("bad l1 D-cache parms: <name>:<nsets>:<bsize>:<assoc>:<repl>");
