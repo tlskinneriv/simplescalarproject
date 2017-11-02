@@ -163,6 +163,9 @@ static char *cache_dl1_opt;
 /* l1 data cache hit latency (in cycles) */
 static int cache_dl1_lat;
 
+/* l1 data victim cache config */
+static char *cache_dl1_vict_opt /* = "none" */; // TLS
+
 /* l2 data cache config, i.e., {<config>|none} */
 static char *cache_dl2_opt;
 
@@ -376,6 +379,8 @@ static struct cache_t *cache_il2;
 /* level 1 data cache, entry level data cache */
 static struct cache_t *cache_dl1;
 
+/* level 1 data victim cache */
+static struct cache_t *cache_dl1_vict;
 /* level 2 data cache */
 static struct cache_t *cache_dl2;
 
@@ -434,6 +439,21 @@ dl1_access_fn(enum mem_cmd cmd,		/* access cmd, Read or Write */
 {
   unsigned int lat;
 
+  if (cache_dl1_vict) { // using a victim cache
+    if (cache_probe(cache_dl1_vict, baddr)) {
+      //if the victim would hit
+      cache_dl1->misses--;
+      cache_dl1->hits++;
+      //swap blocks with victim
+      return cache_access_dl1_vict(cache_dl1_vict, cmd, baddr, NULL, bsize, 
+              now, NULL, NULL, blk, cache_dl1);
+    }
+    else {
+      //swap data before continuing
+      cache_access_dl1_vict(cache_dl1_vict, cmd, baddr, NULL, bsize, 
+              now, NULL, NULL, blk, cache_dl1);
+    }
+  }
   if (cache_dl2)
     {
       /* access next level of data cache hierarchy */
@@ -741,25 +761,40 @@ sim_reg_options(struct opt_odb_t *odb)
 		 /* print */TRUE, NULL);
 
   opt_reg_note(odb,
-"  The cache config parameter <config> has the following format:\n"
-"\n"
-"    <name>:<nsets>:<bsize>:<assoc>:<repl>\n"
-"\n"
-"    <name>   - name of the cache being defined\n"
-"    <nsets>  - number of sets in the cache\n"
-"    <bsize>  - block size of the cache\n"
-"    <assoc>  - associativity of the cache\n"
-"    <repl>   - block replacement strategy, 'l'-LRU, 'f'-FIFO, 'r'-random\n"
-"\n"
-"    Examples:   -cache:dl1 dl1:4096:32:1:l\n"
-"                -dtlb dtlb:128:4096:32:r\n"
+    "  The cache config parameter <config> has the following format:\n"
+    "\n"
+    "    <name>:<nsets>:<bsize>:<assoc>:<repl>\n"
+    "\n"
+    "    <name>   - name of the cache being defined\n"
+    "    <nsets>  - number of sets in the cache\n"
+    "    <bsize>  - block size of the cache\n"
+    "    <assoc>  - associativity of the cache\n"
+    "    <repl>   - block replacement strategy, 'l'-LRU, 'f'-FIFO, 'r'-random\n"
+    "\n"
+    "    Examples:   -cache:dl1 dl1:4096:32:1:l\n"
+    "                -dtlb dtlb:128:4096:32:r\n"
 	       );
 
   opt_reg_int(odb, "-cache:dl1lat",
 	      "l1 data cache hit latency (in cycles)",
 	      &cache_dl1_lat, /* default */1,
 	      /* print */TRUE, /* format */NULL);
-
+  
+  opt_reg_string(odb, "-cache:dl1_vict",
+          "l1 data victim cache config, i.e., {<config>|none}",
+          &cache_dl1_vict_opt, "none", /* print */TRUE, NULL); // TLS
+  opt_reg_note(odb,
+          "  The victim cache config parameter <config> has the following format:\n"
+          "\n"
+          "    <name>:<numLines>:<repl>\n"
+          "\n"
+          "    <name>     - name of the cache being defined\n"
+          "    <numLines> - number of lines in the cache\n"
+          "    <repl>     - block replacement strategy, 'l'-LRU, 'f'-FIFO, 'r'-random\n"
+          "\n"
+          "    Example:   -cache:dl1_vict dl1_vict:2:l\n"
+          );
+  
   opt_reg_string(odb, "-cache:dl2",
 		 "l2 data cache config, i.e., {<config>|none}",
 		 &cache_dl2_opt, "ul2:1024:64:4:l",
@@ -2183,14 +2218,25 @@ ruu_commit(void)
 
 		  /* go to the data cache */
 		  if (cache_dl1)
-		    {
-		      /* commit store value to D-cache */
+      {
+		    if(cache_dl1_vict)  
+        {
+          lat =
+			cache_access_dl1(cache_dl1, Write, (LSQ[LSQ_head].addr&~3),
+				     NULL, 4, sim_cycle, NULL, NULL);
+		      if (lat > cache_dl1_lat)
+			events |= PEV_CACHEMISS;
+        }
+        else
+        {
+        /* commit store value to D-cache */
 		      lat =
 			cache_access(cache_dl1, Write, (LSQ[LSQ_head].addr&~3),
 				     NULL, 4, sim_cycle, NULL, NULL);
 		      if (lat > cache_dl1_lat)
 			events |= PEV_CACHEMISS;
 		    }
+      }
 
 		  /* all loads and stores must to access D-TLB */
 		  if (dtlb)
@@ -2730,12 +2776,22 @@ ruu_issue(void)
 			      if (cache_dl1 && valid_addr)
 				{
 				  /* access the cache if non-faulting */
-				  load_lat =
+              if (cache_dl1_vict) {
+                load_lat =
+				    cache_access_dl1(cache_dl1, Read,
+						 (rs->addr & ~3), NULL, 4,
+						 sim_cycle, NULL, NULL);
+				  if (load_lat > cache_dl1_lat)
+				    events |= PEV_CACHEMISS;
+              }
+              else{
+              load_lat =
 				    cache_access(cache_dl1, Read,
 						 (rs->addr & ~3), NULL, 4,
 						 sim_cycle, NULL, NULL);
 				  if (load_lat > cache_dl1_lat)
 				    events |= PEV_CACHEMISS;
+              }
 				}
 			      else
 				{

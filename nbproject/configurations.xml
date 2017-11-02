@@ -82,10 +82,15 @@
         </cTool>
       </item>
       <item path="cache.c" ex="false" tool="0" flavor2="3">
-        <cTool flags="1">
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>BYTES_LITTLE_ENDIAN</Elem>
+            <Elem>DEBUG</Elem>
+            <Elem>FAST_SRA</Elem>
+            <Elem>FAST_SRL</Elem>
+            <Elem>GZIP_PATH="/bin/gzip"</Elem>
+            <Elem>WORDS_LITTLE_ENDIAN</Elem>
+          </preprocessorList>
         </cTool>
       </item>
       <item path="dlite.c" ex="false" tool="0" flavor2="3">
@@ -238,10 +243,15 @@
         </cTool>
       </item>
       <item path="sim-outorder.c" ex="false" tool="0" flavor2="3">
-        <cTool flags="1">
-          <incDir>
-            <pElem>.</pElem>
-          </incDir>
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>BYTES_LITTLE_ENDIAN</Elem>
+            <Elem>DEBUG</Elem>
+            <Elem>FAST_SRA</Elem>
+            <Elem>FAST_SRL</Elem>
+            <Elem>GZIP_PATH="/bin/gzip"</Elem>
+            <Elem>WORDS_LITTLE_ENDIAN</Elem>
+          </preprocessorList>
         </cTool>
       </item>
       <item path="sim-profile.c" ex="false" tool="0" flavor2="3">
