@@ -131,6 +131,7 @@ dl1_access_fn(enum mem_cmd cmd, /* access cmd, Read or Write */
         struct cache_blk_t *blk, /* ptr to block in upper level */
         tick_t now) /* time of access */ {
   if (cache_dl1_vict) { // using a victim cache
+    fprintf(stderr, "block addr to replace in dl1: %d", baddr);
     if (cache_probe(cache_dl1_vict, baddr)) {
       //if the victim would hit
       cache_dl1->misses--;

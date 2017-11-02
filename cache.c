@@ -695,7 +695,7 @@ cache_access_dl1(struct cache_t *cp, /* cache to access */
         byte_t **udata, /* for return of user data ptr */
         md_addr_t *repl_addr) /* for address of replaced block */ {
   byte_t *p = vp;
-  md_addr_t tag = CACHE_TAG(cp, addr);
+  md_addr_t tag = CACHE_TAG(cp, addr); //tag of block where this addr should be
   md_addr_t set = CACHE_SET(cp, addr);
   md_addr_t bofs = CACHE_BLK(cp, addr);
   struct cache_blk_t *blk, *repl;
