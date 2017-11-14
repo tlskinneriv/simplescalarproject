@@ -805,8 +805,8 @@ cache_access_dl1(struct cache_t *cp, /* cache to access */
           repl, now + lat);
   
   /* update block tags */
-  //repl->tag = tag; // tag set by vict cache
-//  erpl->status |= CACHE_BLK_VALID; // sets valid but doesn't unset Dirty if it was already dirty
+  repl->tag = tag;
+  repl->status |= CACHE_BLK_VALID; // sets valid but doesn't unset Dirty if it was already dirty
 
   /* copy data out of cache block */
   if (cp->balloc) {
@@ -913,15 +913,13 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
         struct cache_t *dl1_cache) /* pointer to cache that block to replace is in */ {
   byte_t *p = vp;
   // info for block that would be here if it hit
-  md_addr_t tag = CACHE_TAG(cp, addr);
-  md_addr_t set = CACHE_SET(cp, addr);
+  md_addr_t victBlock_tag = CACHE_TAG(cp, addr);
+  md_addr_t victBlock_set = CACHE_SET(cp, addr);
   md_addr_t bofs = CACHE_BLK(cp, addr);
   // info for block to swap in l1
   md_addr_t l1Block_L1Set = CACHE_SET(dl1_cache, addr); //set that the l1 block is in
-  md_addr_t l1Block_Bofs = CACHE_BLK(dl1_cache, addr); //offset of block in l1
   md_addr_t l1Block_Addr = CACHE_MK_BADDR(dl1_cache, l1Block->tag, l1Block_L1Set); // l1 block address
   md_addr_t l1Block_VictTag = CACHE_TAG(cp, l1Block_Addr); //l1 block tag in victim cache
-  md_addr_t l1Block_L1NewTag = CACHE_TAG(dl1_cache, addr); //new tag for replacement after writeback
   
   struct cache_blk_t *blk, *repl;
   int lat = 0;
@@ -944,20 +942,20 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
 
   if (cp->hsize) {
     /* higly-associativity cache, access through the per-set hash tables */
-    int hindex = CACHE_HASH(cp, tag);
+    int hindex = CACHE_HASH(cp, victBlock_tag);
 
-    for (blk = cp->sets[set].hash[hindex];
+    for (blk = cp->sets[victBlock_set].hash[hindex];
             blk;
             blk = blk->hash_next) {
-      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID))
+      if (blk->tag == victBlock_tag && (blk->status & CACHE_BLK_VALID))
         goto cache_hit;
     }
   } else {
     /* low-associativity cache, linear search the way list */
-    for (blk = cp->sets[set].way_head;
+    for (blk = cp->sets[victBlock_set].way_head;
             blk;
             blk = blk->way_next) {
-      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID))
+      if (blk->tag == victBlock_tag && (blk->status & CACHE_BLK_VALID))
         goto cache_hit;
     }
   }
@@ -975,13 +973,13 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
   switch (cp->policy) {
     case LRU:
     case FIFO:
-      repl = cp->sets[set].way_tail;
-      update_way_list(&cp->sets[set], repl, Head);
+      repl = cp->sets[victBlock_set].way_tail;
+      update_way_list(&cp->sets[victBlock_set], repl, Head);
      break;
     case Random:
     {
       int bindex = myrand() & (cp->assoc - 1);
-      repl = CACHE_BINDEX(cp, cp->sets[set].blks, bindex);
+      repl = CACHE_BINDEX(cp, cp->sets[victBlock_set].blks, bindex);
     }
       break;
     default:
@@ -993,7 +991,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
     cp->replacements++;
 
     if (repl_addr)
-      *repl_addr = CACHE_MK_BADDR(cp, repl->tag, set);
+      *repl_addr = CACHE_MK_BADDR(cp, repl->tag, victBlock_set);
 
     /* don't replace the block until outstanding misses are satisfied */
     lat += BOUND_POS(repl->ready - now);
@@ -1008,7 +1006,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
       /* write back the cache block */
       cp->writebacks++;
       lat += cp->blk_access_fn(Write,
-              CACHE_MK_BADDR(cp, repl->tag, set),
+              CACHE_MK_BADDR(cp, repl->tag, victBlock_set),
               cp->bsize, repl, now + lat);
     }
   }
@@ -1033,8 +1031,7 @@ cache_access_dl1_vict(struct cache_t *cp, /* cache to access */
   // tag relating to the victim cache for the block being replaced in dl1
   repl->user_data = l1Block->user_data;
   repl->tag = l1Block_VictTag;
-  l1Block->tag = l1Block_L1NewTag;
-  l1Block->status = CACHE_BLK_VALID;
+//  l1Block->status = CACHE_BLK_VALID;
   
   /* return latency of the operation */
   return lat;
@@ -1045,6 +1042,12 @@ cache_hit: /* slow hit handler */
   /* **HIT** */
   /* just swap*/
   cp->hits++;
+
+/* if LRU replacement and this is not the first element of list, reorder */
+  if (blk->way_prev && cp->policy == LRU) {
+    /* move this block to head of the way (MRU) list */
+    update_way_list(&cp->sets[victBlock_set], blk, Head);
+  }
 
   //swap user data between dl1 block and victim block
   byte_t *user_dataTemp = blk->user_data;
@@ -1079,7 +1082,6 @@ cache_hit: /* slow hit handler */
   l1Block->status = temp_status;
   
   //regenerate tags
-  l1Block->tag = l1Block_L1NewTag; // tag for blk hit in L1 cache
   blk->tag = l1Block_VictTag; // tag for l1 block in vict cache
 
   /* get user block data, if requested and it exists */
