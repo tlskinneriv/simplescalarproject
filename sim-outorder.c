@@ -488,6 +488,31 @@ dl1_vict_access_fn(enum mem_cmd cmd, /* access cmd, Read or Write */
         struct cache_blk_t *blk, /* ptr to block in upper level */
         tick_t now) /* time of access */ {
   // this cache should never be accessed directly, but will be accessed for writeback
+  int lat;
+  if (cache_dl2)
+  {
+    /* access next level of data cache hierarchy */
+    lat = cache_access(cache_dl2, cmd, baddr, NULL, bsize,
+     /* now */now, /* pudata */NULL, /* repl addr */NULL);
+    if (cmd == Read)
+      return lat;
+    else
+    {
+      /* FIXME: unlimited write buffers */
+      return 0;
+    }
+  }
+  else
+  {
+    /* access main memory */
+    if (cmd == Read)
+      return mem_access_latency(bsize);
+    else
+    {
+      /* FIXME: unlimited write buffers */
+      return 0;
+    }
+  }
   return 0; // do nothing here
 }
 
