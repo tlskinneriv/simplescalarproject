@@ -528,6 +528,7 @@ cache_access(struct cache_t *cp, /* cache to access */
   }
 
   if (cp->hsize) {
+    printf("highly assoc cache access\n");
     /* higly-associativity cache, access through the per-set hash tables */
     int hindex = CACHE_HASH(cp, tag);
     int lastIndex = cp->sets[set].lastIndex;
