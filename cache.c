@@ -720,6 +720,7 @@ cache_fast_hit: /* fast hit handler */
 
   /* **FAST HIT** */
   cp->hits++;
+  cp->hits_waypred_fast++; // technically a fast hit by way prediction
 
   /* copy data out of cache block, if block exists */
   if (cp->balloc) {
