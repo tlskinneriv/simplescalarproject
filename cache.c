@@ -714,7 +714,8 @@ cache_hit: /* slow hit handler */
   }
 
   /* return first cycle data is available to access */
-  return (int) MAX(cp->hit_latency, (blk->ready - now));
+  if ( cp->use_waypred ) return (int) MAX(cp->hit_latency-1, (blk->ready - now));
+  else return (int) MAX(cp->hit_latency, (blk->ready - now));
 
 cache_fast_hit: /* fast hit handler */
 
@@ -750,7 +751,8 @@ cache_fast_hit: /* fast hit handler */
   }
   
   /* return first cycle data is available to access */
-  return (int) MAX(cp->hit_latency, (blk->ready - now));
+  if ( cp->use_waypred ) return (int) MAX(cp->hit_latency-1, (blk->ready - now));
+  else return (int) MAX(cp->hit_latency, (blk->ready - now));
 }
 
 /* access a cache, perform a CMD operation on cache CP at address ADDR,
