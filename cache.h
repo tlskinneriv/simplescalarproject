@@ -191,6 +191,8 @@ struct cache_t {
 
   /* per-cache stats */
   counter_t hits; /* total number of hits */
+  counter_t hits_waypred_fast; /* number of hits predicted correctly */
+  counter_t hits_waypred_slow; /* numbers of hits predicted incorrectly */
   counter_t misses; /* total number of misses */
   counter_t replacements; /* total number of replacements at misses */
   counter_t writebacks; /* total number of writebacks at misses */
