@@ -317,6 +317,7 @@ cache_create(char *name, /* name of the cache */
   cp->hits = 0;
   cp->hits_waypred_fast = 0;
   cp->hits_waypred_slow = 0;
+  cp->num_block_checks = 0;
   cp->misses = 0;
   cp->replacements = 0;
   cp->writebacks = 0;
@@ -438,6 +439,8 @@ cache_reg_stats(struct cache_t *cp, /* cache instance */
     sprintf(buf, "%s.hits_waypred_slow", name);
     stat_reg_counter(sdb, buf, "number of hits predicted incorrectly", &cp->hits_waypred_slow, 0, NULL);
   }
+  sprintf(buf, "%s.num_blocks_checked", name);
+  stat_reg_counter(sdb, buf, "number of blocks checked overall on cache access", &cp->num_block_checks, 0, NULL);
   sprintf(buf, "%s.misses", name);
   stat_reg_counter(sdb, buf, "total number of misses", &cp->misses, 0, NULL);
   sprintf(buf, "%s.replacements", name);
@@ -536,6 +539,7 @@ cache_access(struct cache_t *cp, /* cache to access */
        */
       if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
         cp->hits_waypred_fast++;  
+        cp->num_block_checks++;
         goto cache_hit;
       }
       /* if not, still search like normal, skipping the block at lastIndex and 
@@ -545,6 +549,7 @@ cache_access(struct cache_t *cp, /* cache to access */
     for (blk = cp->sets[set].hash[hindex];
             blk;
             blk = blk->hash_next) {
+      cp->num_block_checks++;
       // skip block at lastIndex if using way prediction
       if ( cp->use_waypred && blk == cp->sets[set].hash[lastIndex] )
         blk = blk->hash_next;
@@ -564,6 +569,7 @@ cache_access(struct cache_t *cp, /* cache to access */
        */
       if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
         cp->hits_waypred_fast++;  
+        cp->num_block_checks++;
         goto cache_hit;
       }
       /* if not, still search like normal, skipping the lastWay and 
@@ -573,6 +579,7 @@ cache_access(struct cache_t *cp, /* cache to access */
     for (blk = cp->sets[set].way_head;
             blk;
             blk = blk->way_next) {
+      cp->num_block_checks++;
       // skip lastWay if using way prediction
       if ( cp->use_waypred && blk == lastWay )
         blk = blk->way_next;
