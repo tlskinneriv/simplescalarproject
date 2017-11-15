@@ -532,6 +532,7 @@ cache_access(struct cache_t *cp, /* cache to access */
     int hindex = CACHE_HASH(cp, tag);
     int lastIndex = cp->sets[set].lastIndex;
     // if using way pred, then perform way pred comparison
+    printf("lastIndex=%d\n", lastIndex);
     if ( cp->use_waypred && lastIndex != -1 ) {
       blk = cp->sets[set].hash[lastIndex];
       /* if block at lastIndex is the block being asked for, then hit like normal 
