@@ -322,6 +322,9 @@ cache_create(char *name, /* name of the cache */
   cp->writebacks = 0;
   cp->invalidations = 0;
   
+  /* initialize way prediciton option */
+  cp->use_waypred = 0;
+  
   /* blow away the last block accessed */
   cp->last_tagset = 0;
   cp->last_blk = NULL;
