@@ -178,6 +178,9 @@ static char *cache_il1_opt;
 /* l1 instruction cache hit latency (in cycles) */
 static int cache_il1_lat;
 
+/* l1 instruction cache use way prediction */
+static char *cache_il1_waypred;
+
 /* l2 instruction cache config, i.e., {<config>|dl1|dl2|none} */
 static char *cache_il2_opt;
 
@@ -864,6 +867,11 @@ sim_reg_options(struct opt_odb_t *odb)
 	      "l1 instruction cache hit latency (in cycles)",
 	      &cache_il1_lat, /* default */1,
 	      /* print */TRUE, /* format */NULL);
+  
+  opt_reg_string(odb, "-cache:il1waypred",
+		 "l1 inst cache way prediction usage, i.e., {true|false}",
+		 &cache_il1_waypred, /*default*/"false",
+		 /* print */TRUE, NULL);
 
   opt_reg_string(odb, "-cache:il2",
 		 "l2 instruction cache config, i.e., {<config>|dl2|none}",
@@ -1161,6 +1169,11 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
       cache_il1 = cache_create(name, nsets, bsize, /* balloc */FALSE,
 			       /* usize */0, assoc, cache_char2policy(c),
 			       il1_access_fn, /* hit lat */cache_il1_lat);
+      
+      if (!mystricmp(cache_il1_waypred, "true"))
+        cache_il1->use_waypred = 1;
+      else
+        cache_il1->use_waypred = 0;
 
       /* is the level 2 D-cache defined? */
       if (!mystricmp(cache_il2_opt, "none"))

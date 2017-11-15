@@ -315,6 +315,8 @@ cache_create(char *name, /* name of the cache */
 
   /* initialize cache stats */
   cp->hits = 0;
+  cp->hits_waypred_fast = 0;
+  cp->hits_waypred_slow = 0;
   cp->misses = 0;
   cp->replacements = 0;
   cp->writebacks = 0;
@@ -423,10 +425,12 @@ cache_reg_stats(struct cache_t *cp, /* cache instance */
   stat_reg_formula(sdb, buf, "total number of accesses", buf1, "%12.0f");
   sprintf(buf, "%s.hits", name);
   stat_reg_counter(sdb, buf, "total number of hits", &cp->hits, 0, NULL);
-  sprintf(buf, "%s.hits_waypred_fast", name);
-  stat_reg_counter(sdb, buf, "number of hits predicted correctly", &cp->hits_waypred_fast, 0, NULL);
-  sprintf(buf, "%s.hits_waypred_slow", name);
-  stat_reg_counter(sdb, buf, "number of hits predicted incorrectly", &cp->hits_waypred_slow, 0, NULL);
+  if ( cp->use_waypred ) {
+    sprintf(buf, "%s.hits_waypred_fast", name);
+    stat_reg_counter(sdb, buf, "number of hits predicted correctly", &cp->hits_waypred_fast, 0, NULL);
+    sprintf(buf, "%s.hits_waypred_slow", name);
+    stat_reg_counter(sdb, buf, "number of hits predicted incorrectly", &cp->hits_waypred_slow, 0, NULL);
+  }
   sprintf(buf, "%s.misses", name);
   stat_reg_counter(sdb, buf, "total number of misses", &cp->misses, 0, NULL);
   sprintf(buf, "%s.replacements", name);
