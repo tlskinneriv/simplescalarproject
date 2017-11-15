@@ -140,6 +140,8 @@ struct cache_set_t {
   struct cache_blk_t *blks; /* cache blocks, allocated sequentially, so
 				   this pointer can also be used for random
 				   access to cache blocks */
+  struct cache_blk_t *lastWay; /* pointer to the last block used in the way list */
+  int lastIndex; /* if using hash table, used to store last index used */
 };
 
 /* cache definition */

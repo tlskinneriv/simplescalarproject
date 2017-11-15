@@ -321,7 +321,7 @@ cache_create(char *name, /* name of the cache */
   cp->replacements = 0;
   cp->writebacks = 0;
   cp->invalidations = 0;
-
+  
   /* blow away the last block accessed */
   cp->last_tagset = 0;
   cp->last_blk = NULL;
@@ -337,6 +337,10 @@ cache_create(char *name, /* name of the cache */
   for (bindex = 0, i = 0; i < nsets; i++) {
     cp->sets[i].way_head = NULL;
     cp->sets[i].way_tail = NULL;
+    /* initialize mem for last way */
+    cp->sets[i].lastIndex = -1;
+    cp->sets[i].lastWay = NULL;
+    
     /* get a hash table, if needed */
     if (cp->hsize) {
       cp->sets[i].hash =
@@ -520,20 +524,59 @@ cache_access(struct cache_t *cp, /* cache to access */
   if (cp->hsize) {
     /* higly-associativity cache, access through the per-set hash tables */
     int hindex = CACHE_HASH(cp, tag);
-
+    int lastIndex = cp->sets[set].lastIndex;
+    // if using way pred, then perform way pred comparison
+    if ( cp->use_waypred && lastIndex != -1 ) {
+      blk = cp->sets[set].hash[lastIndex];
+      /* if block at lastIndex is the block being asked for, then hit like normal 
+       * and increment fast hit 
+       */
+      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
+        cp->hits_waypred_fast++;  
+        goto cache_hit;
+      }
+      /* if not, still search like normal, skipping the block at lastIndex and 
+       * incrementing slow hits 
+       */
+    }
     for (blk = cp->sets[set].hash[hindex];
             blk;
             blk = blk->hash_next) {
-      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID))
+      // skip block at lastIndex if using way prediction
+      if ( cp->use_waypred && blk == cp->sets[set].hash[lastIndex] )
+        blk = blk->hash_next;
+      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
+        cp->hits_waypred_slow++;
         goto cache_hit;
+      }
     }
   } else {
     /* low-associativity cache, linear search the way list */
+    struct cache_blk_t *lastWay = cp->sets[set].lastWay;
+    // if using way pred, then perform way pred comparison
+    if ( cp->use_waypred && lastWay != NULL ) {
+      blk = lastWay;
+      /* if lastWay is the block being asked for, then hit like normal 
+       * and increment fast hit 
+       */
+      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
+        cp->hits_waypred_fast++;  
+        goto cache_hit;
+      }
+      /* if not, still search like normal, skipping the lastWay and 
+       * incrementing slow hits 
+       */
+    }
     for (blk = cp->sets[set].way_head;
             blk;
             blk = blk->way_next) {
-      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID))
+      // skip lastWay if using way prediction
+      if ( cp->use_waypred && blk == lastWay )
+        blk = blk->way_next;
+      if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
+        cp->hits_waypred_slow++;
         goto cache_hit;
+      }
     }
   }
 
@@ -620,6 +663,12 @@ cache_access(struct cache_t *cp, /* cache to access */
   /* link this entry back into the hash table */
   if (cp->hsize)
     link_htab_ent(cp, &cp->sets[set], repl);
+  
+  /* update last block used in this set*/
+  if ( cp->use_waypred ) {
+    if ( cp->hsize ) cp->sets[set].lastIndex = CACHE_HASH(cp, repl->tag);
+    else cp->sets[set].lastWay = repl;
+  }
 
   /* return latency of the operation */
   return lat;
@@ -654,6 +703,12 @@ cache_hit: /* slow hit handler */
   /* get user block data, if requested and it exists */
   if (udata)
     *udata = blk->user_data;
+  
+  /* update last block used in this set*/
+  if ( cp->use_waypred ) {  
+    if ( cp->hsize ) cp->sets[set].lastIndex = CACHE_HASH(cp, blk->tag);
+    else cp->sets[set].lastWay = blk;
+  }
 
   /* return first cycle data is available to access */
   return (int) MAX(cp->hit_latency, (blk->ready - now));
@@ -684,6 +739,12 @@ cache_fast_hit: /* fast hit handler */
   cp->last_tagset = CACHE_TAGSET(cp, addr);
   cp->last_blk = blk;
 
+  /* update last block used in this set*/
+  if ( cp->use_waypred ) {  
+    if ( cp->hsize ) cp->sets[set].lastIndex = CACHE_HASH(cp, blk->tag);
+    else cp->sets[set].lastWay = blk;
+  }
+  
   /* return first cycle data is available to access */
   return (int) MAX(cp->hit_latency, (blk->ready - now));
 }
