@@ -528,12 +528,10 @@ cache_access(struct cache_t *cp, /* cache to access */
   }
 
   if (cp->hsize) {
-    printf("highly assoc cache access\n");
     /* higly-associativity cache, access through the per-set hash tables */
     int hindex = CACHE_HASH(cp, tag);
     int lastIndex = cp->sets[set].lastIndex;
     // if using way pred and lastIndex defined, then perform way pred comparison
-    printf("lastIndex of set %llu is %d\n", set, lastIndex);
     if ( cp->use_waypred && lastIndex != -1 ) {
       blk = cp->sets[set].hash[lastIndex];
       /* if block at lastIndex is the block being asked for, then hit like normal 
