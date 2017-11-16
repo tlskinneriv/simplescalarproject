@@ -532,7 +532,7 @@ cache_access(struct cache_t *cp, /* cache to access */
     /* higly-associativity cache, access through the per-set hash tables */
     int hindex = CACHE_HASH(cp, tag);
     int lastIndex = cp->sets[set].lastIndex;
-    // if using way pred, then perform way pred comparison
+    // if using way pred and lastIndex defined, then perform way pred comparison
     printf("lastIndex of set %llu is %d\n", set, lastIndex);
     if ( cp->use_waypred && lastIndex != -1 ) {
       blk = cp->sets[set].hash[lastIndex];
@@ -552,9 +552,10 @@ cache_access(struct cache_t *cp, /* cache to access */
             blk;
             blk = blk->hash_next) {
       cp->num_block_checks++;
-      // skip block at lastIndex if using way prediction
-      if ( cp->use_waypred && blk == cp->sets[set].hash[lastIndex] )
-        blk = blk->hash_next;
+      // skip block at lastIndex (if defined) if using way prediction
+      if ( cp->use_waypred && lastIndex != -1 )
+        if ( blk == cp->sets[set].hash[lastIndex] )
+          blk = blk->hash_next;
       if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
         cp->hits_waypred_slow++;
         goto cache_hit;
@@ -563,7 +564,7 @@ cache_access(struct cache_t *cp, /* cache to access */
   } else {
     /* low-associativity cache, linear search the way list */
     struct cache_blk_t *lastWay = cp->sets[set].lastWay;
-    // if using way pred, then perform way pred comparison
+    // if using way pred and lastWay defined, then perform way pred comparison
     if ( cp->use_waypred && lastWay != NULL ) {
       blk = lastWay;
       /* if lastWay is the block being asked for, then hit like normal 
@@ -582,9 +583,10 @@ cache_access(struct cache_t *cp, /* cache to access */
             blk;
             blk = blk->way_next) {
       cp->num_block_checks++;
-      // skip lastWay if using way prediction
-      if ( cp->use_waypred && blk == lastWay )
-        blk = blk->way_next;
+      // skip lastWay (if defined) if using way prediction
+      if ( cp->use_waypred && lastWay != NULL )
+        if ( blk == lastWay )
+          blk = blk->way_next;
       if (blk->tag == tag && (blk->status & CACHE_BLK_VALID)) {
         cp->hits_waypred_slow++;
         goto cache_hit;
