@@ -680,7 +680,7 @@ cache_access(struct cache_t *cp, /* cache to access */
   
   /* update last block used in this set*/
   if ( cp->use_waypred ) {
-    if ( cp->hsize ) cp->sets[set].lastIndex = CACHE_HASH(cp, repl->tag);
+    if ( cp->hsize ) cp->sets[set].lastIndex = CACHE_HASH(cp, tag);
     else cp->sets[set].lastWay = repl;
   }
 
